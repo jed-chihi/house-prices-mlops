@@ -1,4 +1,5 @@
 """Modular ML pipeline for Tunisian house price prediction."""
+
 import joblib
 import pandas as pd
 from sklearn.compose import ColumnTransformer
@@ -28,24 +29,34 @@ def _build_preprocessor(X):
     """Impute + scale numeric columns, impute + one-hot encode categorical ones."""
     num_cols = X.select_dtypes(include="number").columns
     cat_cols = X.select_dtypes(exclude="number").columns
-    numeric = Pipeline([
-        ("imputer", SimpleImputer(strategy="median")),
-        ("scaler", StandardScaler()),
-    ])
-    categorical = Pipeline([
-        ("imputer", SimpleImputer(strategy="most_frequent")),
-        ("encoder", OneHotEncoder(handle_unknown="ignore")),
-    ])
+    numeric = Pipeline(
+        [
+            ("imputer", SimpleImputer(strategy="median")),
+            ("scaler", StandardScaler()),
+        ]
+    )
+    categorical = Pipeline(
+        [
+            ("imputer", SimpleImputer(strategy="most_frequent")),
+            ("encoder", OneHotEncoder(handle_unknown="ignore")),
+        ]
+    )
     return ColumnTransformer([("num", numeric, num_cols), ("cat", categorical, cat_cols)])
 
 
 def train_model(X_train, y_train, n_estimators=200, random_state=42):
     """Train a preprocessing + RandomForest pipeline and return it."""
-    model = Pipeline([
-        ("preprocessor", _build_preprocessor(X_train)),
-        ("regressor", RandomForestRegressor(
-            n_estimators=n_estimators, random_state=random_state, n_jobs=-1)),
-    ])
+    model = Pipeline(
+        [
+            ("preprocessor", _build_preprocessor(X_train)),
+            (
+                "regressor",
+                RandomForestRegressor(
+                    n_estimators=n_estimators, random_state=random_state, n_jobs=-1
+                ),
+            ),
+        ]
+    )
     model.fit(X_train, y_train)
     return model
 
